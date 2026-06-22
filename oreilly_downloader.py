@@ -123,7 +123,12 @@ async def fetch_book(book_id, zfh, session):
         async with sem:
             async with session.get(url) as r:
                 content = await r.read()
-        if path.endswith('.html'):
+        # O'Reilly serves chapters as .xhtml containing HTML-style void tags
+        # (<img>, <br> with no self-close), which are invalid XML and make strict
+        # EPUB readers reject the book. Normalise every (x)html file through
+        # to_xhtml() so it is well-formed XML and the /api/v2/... asset prefixes
+        # are stripped to relative paths.
+        if path.endswith(('.html', '.xhtml', '.htm')):
             content = to_xhtml(content, root_path)
         zfh.writestr(path, content)
 

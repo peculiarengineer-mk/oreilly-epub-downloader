@@ -76,6 +76,17 @@ def test_to_xhtml_strips_root_path():
     assert 'src="img/cover.png"' in out
 
 
+def test_to_xhtml_makes_void_tags_well_formed_xml():
+    # O'Reilly .xhtml chapters contain HTML-style <img> with no self-close, which
+    # is invalid XML; to_xhtml must produce parseable XML (else readers reject it).
+    import xml.dom.minidom as minidom
+    root = '/api/v2/epubs/urn:orm:book:123/files/'
+    html = f'<html><body><p>hi<br><img src="{root}images/x.png" width="5"></p></body></html>'
+    out = to_xhtml(html, root)
+    minidom.parseString(out)  # raises if not well-formed
+    assert root.encode() not in out  # asset prefix stripped
+
+
 def test_to_xhtml_handles_comment_nodes():
     # Regression: full chapters contain HTML comments; tree.iter() yields them
     # and their .get() returns None, which used to crash on .startswith().
