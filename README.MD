@@ -1,6 +1,14 @@
-# Orielly Downloader
+# O'Reilly Downloader
 
-A CLI to download O'Rielly books as epub, packaged via docker.
+A CLI to download O'Reilly books as epub, packaged via docker.
+
+> ⚠️ **Educational purpose only.** This project exists to study how a modern
+> SPA-over-JSON-API + EPUB pipeline works. It only operates with credentials and a
+> subscription you already hold, for content you have access to, and it does **not**
+> defeat any access control or bot protection. Use it for learning. Bulk or automated
+> downloading may violate O'Reilly's
+> [Terms of Service](https://learning.oreilly.com/terms/) — you are solely responsible
+> for how you use it.
 
 It uses O'Reilly's **v2 `epubs/files` manifest API**
 (`/api/v2/epubs/urn:orm:book:{id}/files/`), which returns a paginated list of the
