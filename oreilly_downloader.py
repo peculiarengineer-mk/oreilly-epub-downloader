@@ -26,13 +26,24 @@ from lxml import html as lhtml
 
 BASE_URL = 'https://learning.oreilly.com'
 
-CONTAINER = b"""<?xml version="1.0"?>
-<container xmlns="urn:oasis:names:tc:opendocument:xmlns:container" version="1.0">
-    <rootfiles>
-        <rootfile full-path="EPUB/content.opf" media-type="application/oebps-package+xml"/>
-    </rootfiles>
-</container>
-"""  # noqa
+def container_xml(opf_path):
+    """Build META-INF/container.xml pointing at the real package document.
+
+    The package document is not always EPUB/content.opf — different books ship
+    it as package.opf, etc. Hardcoding the path makes readers unable to find the
+    package and refuse to open the book, so we detect it from the manifest.
+    """
+    container = (
+        '<?xml version="1.0"?>\n'
+        '<container xmlns="urn:oasis:names:tc:opendocument:xmlns:container" '
+        'version="1.0">\n'
+        '    <rootfiles>\n'
+        '        <rootfile full-path="%s" '
+        'media-type="application/oebps-package+xml"/>\n'
+        '    </rootfiles>\n'
+        '</container>\n'
+    ) % opf_path
+    return container.encode('utf-8')
 
 
 class DownloadError(Exception):
@@ -134,8 +145,8 @@ async def fetch_book(book_id, zfh, session):
 
     # EPUB wrappers: mimetype MUST be first and stored (uncompressed).
     zfh.writestr('mimetype', b'application/epub+zip', compress_type=zipfile.ZIP_STORED)
-    zfh.writestr('META-INF/container.xml', CONTAINER)
 
+    opf_path = None
     url = BASE_URL + root_path
     while url:
         print(f'fetching {url}', file=sys.stderr)
@@ -152,11 +163,22 @@ async def fetch_book(book_id, zfh, session):
                     file=sys.stderr,
                 )
                 continue
-            tasks.append(download(file_url, f'EPUB/{full_path}'))
+            dest = f'EPUB/{full_path}'
+            # Remember the package document so container.xml can point at it.
+            if opf_path is None and (
+                result.get('media_type') == 'application/oebps-package+xml'
+                or full_path.endswith('.opf')
+            ):
+                opf_path = dest
+            tasks.append(download(file_url, dest))
 
         await asyncio.gather(*tasks)
 
         url = data.get('next')
+
+    # Written after the manifest so it references the actual package document
+    # path (content.opf, package.opf, ...). mimetype stays the first entry.
+    zfh.writestr('META-INF/container.xml', container_xml(opf_path or 'EPUB/content.opf'))
 
 
 async def amain():

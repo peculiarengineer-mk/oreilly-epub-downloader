@@ -9,7 +9,7 @@ import asyncio
 import pytest
 
 import oreilly_downloader
-from oreilly_downloader import DownloadError, _get_json, to_xhtml
+from oreilly_downloader import DownloadError, _get_json, container_xml, to_xhtml
 
 
 # --------------------------------------------------------------------------- #
@@ -74,6 +74,15 @@ def test_to_xhtml_strips_root_path():
     assert root not in out
     assert 'href="chapter1.html"' in out
     assert 'src="img/cover.png"' in out
+
+
+def test_container_xml_points_at_given_opf():
+    # Different books ship the package doc as content.opf OR package.opf; the
+    # container must reference whatever the manifest actually delivered.
+    import xml.dom.minidom as minidom
+    out = container_xml('EPUB/package.opf')
+    minidom.parseString(out)  # well-formed
+    assert b'full-path="EPUB/package.opf"' in out
 
 
 def test_to_xhtml_makes_void_tags_well_formed_xml():
