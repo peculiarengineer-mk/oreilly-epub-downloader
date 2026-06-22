@@ -15,6 +15,44 @@ It uses O'Reilly's **v2 `epubs/files` manifest API**
 publisher's own EPUB files and streams them straight into a `.epub`. This replaces
 the older per-chapter scraping approach.
 
+## Quick start (worked example)
+
+A complete example anyone can follow. It downloads *The Site Reliability Workbook*
+(book id `9781492029496`) via the recommended SSO path.
+
+**1. Build the image** (once):
+
+```sh
+docker build -t orly .
+```
+
+**2. Grab your session cookies** — log in to <https://learning.oreilly.com/> in
+**Firefox**, open the book's page, press `F12` → **Console**, and run (note the leading
+`c` in `copy`):
+
+```js
+copy(JSON.stringify(document.cookie.split(';').map(c => c.split('=')).map(i => [i[0].trim(), i[1].trim()]).reduce((r, i) => {r[i[0]] = i[1]; return r;}, {})))
+```
+
+**3. Save the clipboard to a file and download** — do this right away (the session
+cookies are short-lived):
+
+```sh
+pbpaste > cookies.json   # macOS;  Linux: xclip -o > cookies.json
+cat cookies.json | docker run -i orly sso 9781492029496 > "SRE Workbook.epub"
+```
+
+**4. Verify you got the full book**, not a truncated preview:
+
+```sh
+file "SRE Workbook.epub"                                      # -> EPUB document
+unzip -p "SRE Workbook.epub" EPUB/ch06.html | tail -c 80      # ends mid-content, no "..." cutoff
+```
+
+> During the run, stderr should say **`Authentication successful.`** If it instead says
+> `Continuing without...`, your cookies were stale — redo step 2 and run immediately.
+> Swap `9781492029496` for any book id (the number in its `learning.oreilly.com/library/view/.../<id>/` URL).
+
 ## Supported path: SSO / JWT (recommended)
 
 The **SSO cookie path is the supported, first-class path**: you export your browser
