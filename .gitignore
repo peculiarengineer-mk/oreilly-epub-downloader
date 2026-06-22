@@ -1,0 +1,5 @@
+cookie.json
+cookies.json
+*.epub
+__pycache__/
+*.pyc

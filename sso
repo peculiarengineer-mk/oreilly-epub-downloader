@@ -1,0 +1,6 @@
+#!/bin/sh
+set -eu
+cat - > cookies.json
+JWT=$(python3 -c 'import json;print(json.load(open("cookies.json"))["orm-jwt"])')
+python3 oreilly_downloader.py --jwt "$JWT" "$1" 1>&2
+cat "$1.epub"
