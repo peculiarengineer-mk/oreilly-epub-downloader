@@ -73,35 +73,13 @@ message pointing you to the SSO path. **Prefer SSO/JWT.**
 
 # Username/password login (best-effort)
 
-> This path is best-effort and may fail behind Akamai bot protection — prefer the
-> [SSO Login](#sso-login) path. If it fails, use SSO instead.
-
-For users who has accounts with `username` and `password`.
-
-First, find a book in O'Reilly Learning. Here I picked the famous `Art of Computer Programming` by Knuth,
-you can find it at [https://learning.oreilly.com/library/view/art-of-computer/9780321635754/](https://learning.oreilly.com/library/view/art-of-computer/9780321635754/).
-
-Copy the ID of the book (in this case `9780321635754`).
-
-Run the docker command:
-
-```sh
-(docker run peculiarengineer-mk/orly:latest login <book id> <email:password>) > "<name of your file>.epub"
-```
-
-| argument            | explanation                                                         | example                       |
-| ------------------- | ------------------------------------------------------------------- | ----------------------------- |
-| `book id`           | the ID of the book                                                  | `9780321635754`               |
-| ` email:password`   | your login credentials, by concatenating the with the `:` delimiter | `kirin@gmail.com:kirin1234`   |
-| `name of your file` | The name of the file you want to save to, it can be anything        | `Art of Computer Programming` |
-
-The full command will look like:
-
-```sh
-(docker run peculiarengineer-mk/orly:latest login 9780321635754 kirin@gmail.com:kirin1234) > "Art of Computer Programming.epub"
-```
-
-> Note that it will take a long time to download. Output is only buffered every 4k bytes (so you might not see any console output for awhile)
+> ⚠️ The `login` (email/password) path is **best-effort and usually fails** behind
+> O'Reilly's Akamai bot protection. When it fails it exits with a clear message pointing
+> you here. **Use the [SSO Login](#sso-login) path instead** — it is the supported,
+> first-class method (see the [Quick start](#quick-start-worked-example) above).
+>
+> For completeness, the shape is `docker run peculiarengineer-mk/orly:latest login <book id> <email:password>`,
+> but don't rely on it.
 
 # SSO Login
 
